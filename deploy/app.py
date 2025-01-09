@@ -22,6 +22,13 @@ cluster_descriptions = {
     4: "Cluster 5: Low Income, High Spending"
 }
 
+# Function to handle prediction
+def make_prediction(annual_income, spending_score):
+    input_data = np.array([[annual_income, spending_score]])
+    predicted_cluster = model.predict(input_data)[0]
+    cluster_description = cluster_descriptions.get(predicted_cluster, "No description available for this cluster.")
+    return predicted_cluster, cluster_description
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result_message = "Prediction will be shown here after clicking 'Predict'"
@@ -36,42 +43,8 @@ def index():
             result_message = "Please enter valid numbers for both fields."
             return render_template("index.html", prediction=result_message, cluster_description="")
 
-        # Prepare input data for prediction
-        input_data = np.array([[annual_income, spending_score]])
-
         # Make prediction with KMeans model
-        predicted_cluster = model.predict(input_data)[0]
-
-        # Get the description of the predicted cluster
-        cluster_description = cluster_descriptions.get(predicted_cluster, "No description available for this cluster.")
-        
-        # Return the result based on prediction
-        result_message = f"Predicted Cluster: {predicted_cluster}"
-
-    return render_template("index.html", prediction=result_message, cluster_description=cluster_description)
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    result_message = "Prediction will be shown here after clicking 'Predict'"
-    cluster_description = ""
-    
-    # Retrieve input data and predict cluster
-    if request.method == 'POST':
-        try:
-            annual_income = float(request.form['annual_income'])
-            spending_score = float(request.form['spending_score'])
-        except ValueError:
-            result_message = "Please enter valid numbers for both fields."
-            return render_template("index.html", prediction=result_message, cluster_description="")
-        
-        # Prepare input data for prediction
-        input_data = np.array([[annual_income, spending_score]])
-
-        # Make prediction with KMeans model
-        predicted_cluster = model.predict(input_data)[0]
-
-        # Get the description of the predicted cluster
-        cluster_description = cluster_descriptions.get(predicted_cluster, "No description available for this cluster.")
+        predicted_cluster, cluster_description = make_prediction(annual_income, spending_score)
         
         # Return the result based on prediction
         result_message = f"Predicted Cluster: {predicted_cluster}"
