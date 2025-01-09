@@ -10,7 +10,14 @@ app = Flask(__name__)
 model_path = Path(__file__).parent / 'models' / 'kmeans_model.pkl'
 model = joblib.load(model_path)
 
-
+# Define cluster descriptions
+cluster_descriptions = {
+    0: "Cluster 1: Moderate Income, Moderate Spending",
+    1: "Cluster 2: High Income, High Spending",
+    2: "Cluster 3: High Income, Low Spending",
+    3: "Cluster 4: Low Income, Low Spending",
+    4: "Cluster 5: Low Income, High Spending"
+}
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -34,7 +41,8 @@ def index():
         # Return the result based on prediction
         result_message = f"Predicted Cluster: {predicted_cluster}"
 
-    return render_template("index.html", prediction=result_message)
+    return render_template("index.html", prediction=result_message, cluster_description=cluster_description)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Change the host to '0.0.0.0' to make the app accessible externally
+    app.run(host='0.0.0.0', port=5000, debug=True)
