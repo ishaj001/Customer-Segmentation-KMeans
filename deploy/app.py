@@ -27,7 +27,9 @@ def make_prediction(annual_income, spending_score):
     input_data = np.array([[annual_income, spending_score]])
     predicted_cluster = model.predict(input_data)[0]
     cluster_description = cluster_descriptions.get(predicted_cluster, "No description available for this cluster.")
-    return predicted_cluster, cluster_description
+    
+    # Ensure predicted_cluster is a Python int, not a numpy.int32
+    return int(predicted_cluster), cluster_description
 
 @app.route('/')
 def index():
