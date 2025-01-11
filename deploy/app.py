@@ -1,6 +1,6 @@
 import joblib
 import numpy as np
-from flask import Flask, render_template, request
+from flask import Flask, request, jsonify, render_template
 from pathlib import Path
 from flask_cors import CORS  # Import CORS for handling cross-origin requests
 
@@ -29,27 +29,28 @@ def make_prediction(annual_income, spending_score):
     cluster_description = cluster_descriptions.get(predicted_cluster, "No description available for this cluster.")
     return predicted_cluster, cluster_description
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    result_message = "Prediction will be shown here after clicking 'Predict'"
-    cluster_description = ""
-    
-    if request.method == 'POST':
-        # Retrieve input data from the form and convert them to floats
-        try:
-            annual_income = float(request.form['annual_income'])
-            spending_score = float(request.form['spending_score'])
-        except ValueError:
-            result_message = "Please enter valid numbers for both fields."
-            return render_template("index.html", prediction=result_message, cluster_description="")
+    return render_template("index.html")  # Ensure your frontend template exists
 
-        # Make prediction with KMeans model
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # Parse JSON input from the request
+        data = request.get_json()
+        annual_income = float(data['annual_income'])
+        spending_score = float(data['spending_score'])
+        
+        # Make prediction
         predicted_cluster, cluster_description = make_prediction(annual_income, spending_score)
         
-        # Return the result based on prediction
-        result_message = f"Predicted Cluster: {predicted_cluster}"
-
-    return render_template("index.html", prediction=result_message, cluster_description=cluster_description)
+        # Return prediction and cluster description as JSON
+        return jsonify({
+            "predicted_cluster": predicted_cluster,
+            "cluster_description": cluster_description
+        })
+    except (ValueError, KeyError) as e:
+        return jsonify({"error": "Invalid input. Please provide 'annual_income' and 'spending_score'."}), 400
 
 if __name__ == '__main__':
     # Run on host 0.0.0.0 and port 8000 for external access
